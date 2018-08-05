@@ -1,8 +1,6 @@
 library(shinydashboard)
 library(leaflet)
 library(shinythemes)
-library(chorddiag)
-
 
 # This forces the attributes to work
 convertMenuItem <- function(mi,tabName) {
@@ -58,23 +56,9 @@ sidebar <- dashboardSidebar(sidebarMenu(id = "tabs",
 												 choices = list("Alpha = .01",
 												 							 "Alpha = .05",
 												 							 "Alpha = .10"), selected = "Alpha = .05")
-													 ),'cluster'),
-############################################### Tab 3 side bar ############################################
-	convertMenuItem(menuItem("Green Space Dashboard", tabName = "facility", icon = NULL,
-													 radioButtons("radio_facility", label = h3("Choose the EDI Wave"),
-													 						 choices = list("Wave 2: 2004-2007", "Wave 3: 2007-2009",
-													 						 							 "Wave 4: 2009-2011", "Wave 5: 2011-2013", "Wave 6: 2013-2016"),
-													 						 selected = "Wave 6: 2013-2016"),
-													 selectInput("select_facility", label = h3("Choose the subscale"),
-													 						c("Count", "Valid Count", "Physical", "Social", "Emotional", "Language", "Communication",
-													 							"One or More", "One or More (w/o Communication)"),
-													 						selected = "Count"),
-													 checkboxGroupInput(inputId = "check_facility", label = h3("Display:"),
-													 									 choices = list("Green Space" = "p", "Children Age 0 - 5 since 2013" = "f"),
-													 									 selected = NULL),
-													 actionButton("clear_facility", "Clear Markers")
-														),'facility')
+													 ),'cluster')
 )
+# End sidepanel
 )
 
 body <- dashboardBody(tabItems(
@@ -121,27 +105,9 @@ body <- dashboardBody(tabItems(
 								 		)
 					)
 					)
-	),
-############################################### Tab 3 body ############################################
-	tabItem(tabName = "facility",
-					fluidRow(column(width = 7,
-													box(title = "Neighborhood Map", status = "primary", solidHeader = TRUE,
-															width = NULL, height = 600,
-															leafletOutput("SHPfacility",height = 540)
-													)
-					),
-					column(width = 5,
-								 box(title = "Where do Children register for Outdoor Programs?", status = "warning", solidHeader = TRUE,
-								 		width = NULL, 
-								 		chorddiagOutput("chord", height = 600)
-								 ),
-								 box(title = "Here we should put census data", status = "warning", solidHeader = TRUE,
-								 		collapsible = TRUE, width = NULL
-								 )
-					)
-					)
 	)
 )
+# End body
 )
 			
 ui <- dashboardPage(
