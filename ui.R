@@ -1,6 +1,8 @@
 library(shinydashboard)
 library(leaflet)
 library(shinythemes)
+library(chorddiag)
+
 
 # This forces the attributes to work
 convertMenuItem <- function(mi,tabName) {
@@ -9,63 +11,14 @@ convertMenuItem <- function(mi,tabName) {
 	mi
 }
 
-# A dashboard header with 3 dropdown menus
+# A dashboard header
 header <- dashboardHeader(
-	title = "EDI in Surrey",
-	
-	# Dropdown menu for messages
-	dropdownMenu(type = "messages", badgeStatus = "success",
-							 messageItem("Support Team",
-							 						"This is the content of a message.",
-							 						time = "5 mins"
-							 ),
-							 messageItem("Support Team",
-							 						"This is the content of another message.",
-							 						time = "2 hours"
-							 ),
-							 messageItem("New User",
-							 						"Can I get some help?",
-							 						time = "Today"
-							 )
-	),
-							 
-							 # Dropdown menu for notifications
-							 dropdownMenu(type = "notifications", badgeStatus = "warning",
-							 						 notificationItem(icon = icon("users"), status = "info",
-							 						 								 "5 new members joined today"
-							 						 ),
-							 						 notificationItem(icon = icon("warning"), status = "danger",
-							 						 								 "Resource usage near limit."
-							 						 ),
-							 						 notificationItem(icon = icon("shopping-cart", lib = "glyphicon"),
-							 						 								 status = "success", "25 sales made"
-							 						 ),
-							 						 notificationItem(icon = icon("user", lib = "glyphicon"),
-							 						 								 status = "danger", "You changed your username"
-							 						 )
-							 ),
-							 
-							 # Dropdown menu for tasks, with progress bar
-							 dropdownMenu(type = "tasks", badgeStatus = "danger",
-							 						 taskItem(value = 20, color = "aqua",
-							 						 				 "Refactor code"
-							 						 ),
-							 						 taskItem(value = 40, color = "green",
-							 						 				 "Design new layout"
-							 						 ),
-							 						 taskItem(value = 60, color = "yellow",
-							 						 				 "Another task"
-							 						 ),
-							 						 taskItem(value = 80, color = "red",
-							 						 				 "Write documentation"
-							 						 )
-							 )
-	)
+	title = "DSSG 2018 analysis over Surrey")
 sidebar <- dashboardSidebar(sidebarMenu(id = "tabs",
 ############################################### Tab 1 side bar ############################################
-	convertMenuItem(menuItem("EDI Dashboard", tabName = "edi", icon = icon("dashboard"),
+	convertMenuItem(menuItem("EDI Dashboard", tabName = "edi", icon = NULL,
 					 selectizeInput('select_edi_neighborhood', label = NULL, choices = NULL,
-																					 options = list(create = TRUE, maxOptions = 5, maxItems = 1,
+																					 options = list(create = TRUE, maxItems = 1,
 																					 							 placeholder = 'Select a neighborhood')
 					 ),
 					radioButtons("radio_edi", label = h3("Choose the EDI Wave"),
@@ -79,12 +32,48 @@ sidebar <- dashboardSidebar(sidebarMenu(id = "tabs",
 	),'dashboard'),
 ############################################### Tab 2 side bar ############################################
 	convertMenuItem(menuItem("Cluster Dashboard", tabName = "cluster", icon = NULL,
-													 radioButtons("radio_cluster", label = h3("Choose the EDI Wave"),
+					radioButtons("radio_cluster", label = h3("Choose the EDI Wave"),
+						choices = list("Wave 2: 2004-2007", "Wave 3: 2007-2009",
+													 "Wave 4: 2009-2011", "Wave 5: 2011-2013", "Wave 6: 2013-2016",
+													 	"All Waves"),
+						selected = "Wave 6: 2013-2016"),
+					radioButtons("radio_cluster_method", label = h3("Choose the clustering method"),
+											 choices = list("tSNE", "UMAP"),
+											 selected = "tSNE"),
+						checkboxGroupInput(inputId = "check_census", label = h3("Census Groups:"),
+							choices = list("Geography" = "ge",
+														 "Ethnic Origins" = "eo",
+														 "Language and Immigration" = "li",
+														 "Income" = "in",
+													 	 "Cost of Living" = "cl",
+														 "Employment" = "em",
+													 	 "Occupation" = "oc",
+													 	 "Population" = "po"),
+							selected = NULL),
+						selectizeInput('select_census', label = NULL, choices = NULL,
+													 options = list(create = TRUE, maxItems = 10,
+													 placeholder = 'Select Census Variables')
+													 ),
+						radioButtons("radio_anova", label = h3("Anova input"),
+												 choices = list("Alpha = .01",
+												 							 "Alpha = .05",
+												 							 "Alpha = .10"), selected = "Alpha = .05")
+													 ),'cluster'),
+############################################### Tab 3 side bar ############################################
+	convertMenuItem(menuItem("Green Space Dashboard", tabName = "facility", icon = NULL,
+													 radioButtons("radio_facility", label = h3("Choose the EDI Wave"),
 													 						 choices = list("Wave 2: 2004-2007", "Wave 3: 2007-2009",
-													 						 							 "Wave 4: 2009-2011", "Wave 5: 2011-2013", "Wave 6: 2013-2016",
-													 						 							 "All Waves"),
-													 						 selected = "Wave 6: 2013-2016")
-													 ),'cluster')
+													 						 							 "Wave 4: 2009-2011", "Wave 5: 2011-2013", "Wave 6: 2013-2016"),
+													 						 selected = "Wave 6: 2013-2016"),
+													 selectInput("select_facility", label = h3("Choose the subscale"),
+													 						c("Count", "Valid Count", "Physical", "Social", "Emotional", "Language", "Communication",
+													 							"One or More", "One or More (w/o Communication)"),
+													 						selected = "Count"),
+													 checkboxGroupInput(inputId = "check_facility", label = h3("Display:"),
+													 									 choices = list("Green Space" = "p", "Children Age 0 - 5 since 2013" = "f"),
+													 									 selected = NULL),
+													 actionButton("clear_facility", "Clear Markers")
+														),'facility')
 )
 )
 
@@ -93,8 +82,8 @@ body <- dashboardBody(tabItems(
 	tabItem(tabName = "edi",
 					fluidRow(column(width = 7,
 				 box(title = "Neighborhood Map", status = "primary", solidHeader = TRUE,
-				 		width = NULL, height = 700,
-				 		leafletOutput("SHPplot",height = 640)
+				 		width = NULL, height = 600,
+				 		leafletOutput("SHPplot",height = 540)
 				 )
 				),
 				column(width = 5,
@@ -113,18 +102,42 @@ body <- dashboardBody(tabItems(
 	tabItem(tabName = "cluster",
 					fluidRow(column(width = 7,
 													box(title = "Neighborhood Map", status = "primary", solidHeader = TRUE,
-															width = NULL, height = 700,
-															leafletOutput("SHPcluster",height = 640)
-													)
+															width = NULL, height = 600,
+															leafletOutput("SHPcluster",height = 540)
+															),
+													box(title = "Anova Test", status = "warning", solidHeader = TRUE,
+															width = NULL, height = 400,
+															htmlOutput("anovaresult")
+															)
 																		),
 					column(width = 5,
 								 box(title = "Bar Graph of Clusters", status = "warning", solidHeader = TRUE,
 								 		width = NULL,
 								 		plotOutput("clusterbar")
 								 		),
+								 box(title = "Census Variables", status = "warning", solidHeader = TRUE,
+								 		collapsible = TRUE, width = NULL,
+								 		plotOutput("cluster_census")
+								 		)
+					)
+					)
+	),
+############################################### Tab 3 body ############################################
+	tabItem(tabName = "facility",
+					fluidRow(column(width = 7,
+													box(title = "Neighborhood Map", status = "primary", solidHeader = TRUE,
+															width = NULL, height = 600,
+															leafletOutput("SHPfacility",height = 540)
+													)
+					),
+					column(width = 5,
+								 box(title = "Where do Children register for Outdoor Programs?", status = "warning", solidHeader = TRUE,
+								 		width = NULL, 
+								 		chorddiagOutput("chord", height = 600)
+								 ),
 								 box(title = "Here we should put census data", status = "warning", solidHeader = TRUE,
 								 		collapsible = TRUE, width = NULL
-								 		)
+								 )
 					)
 					)
 	)
@@ -136,5 +149,3 @@ ui <- dashboardPage(
 	sidebar,
 	body
 )
-
-
